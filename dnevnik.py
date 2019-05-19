@@ -90,4 +90,4 @@ for j in range(len(titles)-len(indexes)):
         titles[j]=titles[j]+", "+titles[j+1]
         titles.pop(j+1)
 df['Titles'] = titles
-df.to_csv('marks'+sub+'.csv')
+df.to_csv('marks'+sub+'.csv',index=False, encoding='utf-8-sig')
