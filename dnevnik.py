@@ -82,7 +82,7 @@ for link in marks_temp:
 indexes=[]
 q=0
 for i in df['Оценки']:
-    if len(i)>1:
+    if len(str(i).split())>1:
         indexes.append(q)
     q+=1
 for j in range(len(titles)-len(indexes)):
