@@ -68,7 +68,6 @@ df = dfs[0]
 df = df.drop("Комментарий учителя",axis=1)
 df = df.drop("Присутствие",axis=1)
 df = df.dropna()
-print(df)
 dates = df[['Дата и время']].to_numpy()
 dates = dates.ravel()
 marks_temp = []
@@ -80,11 +79,15 @@ for mark in marks_temp:
 titles = []
 for link in marks_temp:
     titles.append(link['title'])
-marks_new = np.array(marks)
-titles_new = np.array(titles)
-#print(dates)
-#for i in range(len(marks_new)-len(dates)):
-    #dates.append(0)
-#dfp = pd.DataFrame({"What for" : titles_new, "Marks" : marks_new})
-dfp = pd.DataFrame({"Dates" : dates, "What for" : titles_new, "Marks" : marks_new})
-dfp.to_csv("submission1.csv", index=False, encoding='utf-8-sig')
+indexes=[]
+q=0
+for i in df['Оценки']:
+    if len(i)>1:
+        indexes.append(q)
+    q+=1
+for j in range(len(titles)-len(indexes)):
+    if j in indexes:
+        titles[j]=titles[j]+", "+titles[j+1]
+        titles.pop(j+1)
+df['Titles'] = titles
+df.to_csv('marks'+sub+'.csv')
