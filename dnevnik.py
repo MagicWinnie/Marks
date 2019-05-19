@@ -50,8 +50,6 @@ if "\r\n\t\t\t                        "+sub+"\r\n\t\t\t                    " in 
 else:
     print("Please re-enter your subject")
     quit()
-
-
 req_headers3 = {
     'Host': 'schools.dnevnik.ru',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
@@ -69,6 +67,8 @@ dfs = pd.read_html(html_string)
 df = dfs[0]
 df = df.drop("Комментарий учителя",axis=1)
 df = df.drop("Присутствие",axis=1)
+df = df.dropna()
+print(df)
 dates = df[['Дата и время']].to_numpy()
 dates = dates.ravel()
 marks_temp = []
@@ -85,6 +85,6 @@ titles_new = np.array(titles)
 #print(dates)
 #for i in range(len(marks_new)-len(dates)):
     #dates.append(0)
-dfp = pd.DataFrame({"What for" : titles_new, "Marks" : marks_new})
-#dfp = pd.DataFrame({"Dates" : dates, "What for" : titles_new, "Marks" : marks_new})
+#dfp = pd.DataFrame({"What for" : titles_new, "Marks" : marks_new})
+dfp = pd.DataFrame({"Dates" : dates, "What for" : titles_new, "Marks" : marks_new})
 dfp.to_csv("submission1.csv", index=False, encoding='utf-8-sig')
