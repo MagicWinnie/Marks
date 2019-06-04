@@ -1,4 +1,4 @@
 lxml
-bs4 import BeautifulSoup
+bs4
 numpy
 pandas
