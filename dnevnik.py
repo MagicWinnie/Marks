@@ -9,9 +9,6 @@ import pandas as pd
 USERNAME = 'login' # put usename here
 PASSWORD = 'password' # put password here
 
-USERNAME = 'dimaokoneshnikov22'
-PASSWORD = 'nfgbs7h635l'
-
 LOGINURL = 'https://login.dnevnik.ru/login'
 DATAURL = 'https://schools.dnevnik.ru/marks.aspx?school=19034&index=2&tab=subject&homebasededucation=False'
 session = requests.session()
