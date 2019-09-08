@@ -9,6 +9,9 @@ import pandas as pd
 USERNAME = 'login' # put usename here
 PASSWORD = 'password' # put password here
 
+USERNAME = 'dimaokoneshnikov22'
+PASSWORD = 'nfgbs7h635l'
+
 LOGINURL = 'https://login.dnevnik.ru/login'
 DATAURL = 'https://schools.dnevnik.ru/marks.aspx?school=19034&index=2&tab=subject&homebasededucation=False'
 session = requests.session()
@@ -38,14 +41,15 @@ mark_html = str(mark_list)
 contents = []
 values = []
 for option in soup.find_all('option'):
-    contents.append(option.text)
+    contents.append(option.text.strip().rstrip())
     values.append(option['value'])
 contents.pop(0)
 values.pop(0)
-print(*contents)
+for content in contents:
+    print(content+"\n")
 sub = input("Write the subject ")
-if "\r\n\t\t\t                        "+sub+"\r\n\t\t\t                    " in contents:
-    index = contents.index("\r\n\t\t\t                        "+sub+"\r\n\t\t\t                    ")
+if sub in contents:
+    index = contents.index(sub)
     value = values[index]
 else:
     print("Please re-enter your subject")
