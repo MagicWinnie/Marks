@@ -6,12 +6,10 @@ from lxml import html
 from numpy import savetxt
 import numpy as np
 import pandas as pd
-USERNAME = 'login' # put usename here
-PASSWORD = 'password' # put password here
 
-LOGINURL = 'https://login.dnevnik.ru/login'
-DATAURL = 'https://schools.dnevnik.ru/marks.aspx?school=19034&index=2&tab=subject&homebasededucation=False'
-session = requests.session()
+USERNAME = '' # put usename here
+PASSWORD = '' # put password here
+
 req_headers = {
     'Content-Type': 'application/x-www-form-urlencoded'
 }
@@ -20,8 +18,6 @@ formdata = {
     'password': PASSWORD,
     'exceededAttempts' : 'False'
 }
-
-r = session.post(LOGINURL, data=formdata, headers=req_headers, allow_redirects=False)
 req_headers2 = {
     'Host': 'schools.dnevnik.ru',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
@@ -29,9 +25,24 @@ req_headers2 = {
     'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
 }
+req_headers3 = {
+    'Host': 'schools.dnevnik.ru',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+    'Referer': 'https://schools.dnevnik.ru/marks.aspx?school=19034&index=2&tab=subject&homebasededucation=False',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+}
 
-r2 = session.get(DATAURL,  headers=req_headers2, allow_redirects=True)
-html_marks=r2.text
+
+
+LOGINURL = 'https://login.dnevnik.ru/login'
+DATAURL = 'https://schools.dnevnik.ru/marks.aspx?school=19034&index=3&tab=subject'
+session = requests.session()
+
+r = session.post(LOGINURL, data=formdata, headers=req_headers, allow_redirects=False)
+
+
+html_marks = session.get(DATAURL,  headers=req_headers2, allow_redirects=True).text
 soup = BeautifulSoup(html_marks,features="lxml")
 mark_list = soup.find_all('div', class_='cc')
 mark_html = str(mark_list)
@@ -41,54 +52,56 @@ for option in soup.find_all('option'):
     contents.append(option.text.strip().rstrip())
     values.append(option['value'])
 contents.pop(0)
+del contents[-2:]
+contents[-1] = "Все предметы"
 values.pop(0)
-for content in contents:
-    print(content+"\n")
-sub = input("Write the subject ")
-if sub in contents:
-    index = contents.index(sub)
-    value = values[index]
+for i, content in zip(range(len(contents)), contents):
+    print(i, content)
+sub = int(input("Write the number "))
+if 0 <= sub <= len(contents):
+    value = values[sub]
 else:
     print("Please re-enter your subject")
     quit()
-req_headers3 = {
-    'Host': 'schools.dnevnik.ru',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-    'Referer': 'https://schools.dnevnik.ru/marks.aspx?school=19034&index=2&tab=subject&homebasededucation=False',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
-}
 url = "https://schools.dnevnik.ru/marks.aspx?school=19034&index=2&tab=subject&subject="+value+"&period=&homebasededucation=False"
-r3 = session.get(url,  headers=req_headers3, allow_redirects=True)
-html_third = r3.text
+html_third = session.get(url,  headers=req_headers3, allow_redirects=True).text
 soup3 = BeautifulSoup(html_third,features="lxml")
 mark_lists = soup3.find_all('table')
 html_string = str(mark_lists)
-dfs = pd.read_html(html_string)
-df = dfs[0]
+df = pd.read_html(html_string)[0]
+#df = dfs[0]
+#print(dfs[0])
 df = df.drop("Комментарий учителя",axis=1)
 df = df.drop("Присутствие",axis=1)
 df = df.dropna()
-dates = df[['Дата и время']].to_numpy()
-dates = dates.ravel()
+# print(df)
+dates = df[['Дата и время']].to_numpy().ravel()
 marks_temp = []
 mark_lists = BeautifulSoup(str(mark_lists),features="lxml")
 marks_temp=mark_lists.find_all("span")
 marks = []
 for mark in marks_temp:
-    marks.append(int(mark.contents[0]))
+    marks.append(mark.contents[0])
 titles = []
 for link in marks_temp:
     titles.append(link['title'])
-indexes=[]
-q=0
-for i in df['Оценки']:
-    if len(str(i).split())>1:
-        indexes.append(q)
-    q+=1
-for j in range(len(titles)-len(indexes)):
-    if j in indexes:
-        titles[j]=titles[j]+", "+titles[j+1]
-        titles.pop(j+1)
-df['Titles'] = titles
-df.to_csv('marks'+sub+'.csv',index=False, encoding='utf-8-sig')
+
+old_date = df['Дата и время'].to_numpy()
+old_marks = df['Оценки'].to_numpy()
+
+new_date = []
+new_marks = []
+
+for i in range(len(old_marks)):
+    if len(old_marks[i])>1:
+        new_marks += list(map(str, old_marks[i].split()))
+        for _ in range(len(list(map(str, old_marks[i].split())))):
+            new_date.append(old_date[i].replace("\xa0", " "))
+    else:
+        new_marks.append(old_marks[i])
+        new_date.append(old_date[i].replace("\xa0", " "))
+
+df_new = pd.DataFrame({"Date":new_date, "Mark":new_marks, "Title": titles})
+# print(df_new)
+df_new.to_csv('marks'+str(values[sub])+'.csv',index=False, encoding='utf-8-sig')
+print("Done")
