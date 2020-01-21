@@ -63,18 +63,18 @@ if 0 <= sub <= len(contents):
 else:
     print("Please re-enter your subject")
     quit()
-url = "https://schools.dnevnik.ru/marks.aspx?school=19034&index=2&tab=subject&subject="+value+"&period=&homebasededucation=False"
+url = "https://schools.dnevnik.ru/marks.aspx?school=19034&index=3&tab=subject&subject="+value+"&period=&homebasededucation=False"
 html_third = session.get(url,  headers=req_headers3, allow_redirects=True).text
 soup3 = BeautifulSoup(html_third,features="lxml")
 mark_lists = soup3.find_all('table')
 html_string = str(mark_lists)
 df = pd.read_html(html_string)[0]
 #df = dfs[0]
-#print(dfs[0])
+#print(df.columns)
 df = df.drop("Комментарий учителя",axis=1)
 df = df.drop("Присутствие",axis=1)
 df = df.dropna()
-# print(df)
+#print(df)
 dates = df[['Дата и время']].to_numpy().ravel()
 marks_temp = []
 mark_lists = BeautifulSoup(str(mark_lists),features="lxml")
@@ -88,20 +88,26 @@ for link in marks_temp:
 
 old_date = df['Дата и время'].to_numpy()
 old_marks = df['Оценки'].to_numpy()
-
+#old_titles = df[]
+#print(df)
+#print(old_marks)
+new_titles = []
 new_date = []
 new_marks = []
-
+#print(len(old_marks), len(titles))
 for i in range(len(old_marks)):
-    if len(old_marks[i])>1:
+    if len(str(old_marks[i]).split())>1:
         new_marks += list(map(str, old_marks[i].split()))
         for _ in range(len(list(map(str, old_marks[i].split())))):
             new_date.append(old_date[i].replace("\xa0", " "))
+        new_titles+=titles[i:i+len(str(old_marks[i]).split())]
+        del titles[i:i+len(str(old_marks[i]).split())-1]
     else:
         new_marks.append(old_marks[i])
         new_date.append(old_date[i].replace("\xa0", " "))
-
-df_new = pd.DataFrame({"Date":new_date, "Mark":new_marks, "Title": titles})
+        new_titles.append(titles[i])
+#print(new_titles, new_marks, new_date, len(new_titles), len(new_marks), len(new_date))
+df_new = pd.DataFrame({"Date":new_date, "Mark":new_marks, "Title": new_titles})
 # print(df_new)
 df_new.to_csv('marks'+str(values[sub])+'.csv',index=False, encoding='utf-8-sig')
 print("Done")
